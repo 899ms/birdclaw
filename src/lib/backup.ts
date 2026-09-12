@@ -3058,6 +3058,10 @@ function importBackupUnlockedEffect({
 				repository.insertRows(codec.merge.sql, rows, codec.merge.columns);
 				const fts = codec.merge.fts;
 				if (!fts) continue;
+				if (fts.target.table === "tweets_fts") {
+					repository.reindexTweets(rows, fts.idKey);
+					continue;
+				}
 				repository.insertFtsRows({
 					target: fts.target,
 					rows,

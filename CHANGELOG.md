@@ -2,13 +2,15 @@
 
 ## 0.12.7 - Unreleased
 
+- Preserve full X Note Tweets through live ingestion, search, archive/backup merges, and expandable timeline rendering. Keep schema-8 backup interoperability; older writers retain full text but omit the optional Note Tweet marker. Thanks @eferm (#134).
+- Compatibility: Note Tweet storage adds SQLite migration 11. Prepare existing read-only archive snapshots with writable initialization before serving the updated application.
 - Reconcile each tweet author once per ingested payload, avoiding repeated profile and history work for posts and included references by the same author.
 
 - Update the Hono server dependency to 4.13.7 and the development/CI Node pin to 26.8.2; installed-package checks retain the Node 26.5.1 minimum.
 
 - Limit profile-history rows in SQLite before returning them and omit unused raw payloads from history reads, reducing sync and identity-search work for profiles with long histories.
 
-- Index historical follower membership, follow events, and list owners by profile so identity reconciliation avoids repeated full-table scans; existing version-9 snapshots remain readable during the additive version-10 migration.
+- Index historical follower membership, follow events, and list owners by profile so identity reconciliation avoids repeated full-table scans.
 
 - Reduce CLI startup time by bundling the used Effect modules while keeping other direct dependencies external.
 

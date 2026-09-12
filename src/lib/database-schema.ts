@@ -1158,4 +1158,13 @@ export const DATABASE_MIGRATIONS: readonly DatabaseMigration[] = [
 			`);
 		},
 	},
+	{
+		version: 11,
+		name: "retain long-form tweet content",
+		up: (db) => {
+			if (!getColumnNames(db, "tweets").has("note_tweet_json")) {
+				db.exec("alter table tweets add column note_tweet_json text");
+			}
+		},
+	},
 ];

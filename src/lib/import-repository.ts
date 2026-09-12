@@ -61,6 +61,29 @@ export class ImportRepository {
 		}
 	}
 
+	reindexTweets(rows: readonly ImportRow[], idKey: string) {
+		const ids = JSON.stringify([
+			...new Set(
+				rows
+					.map((row) => row[idKey])
+					.filter((id): id is string => typeof id === "string"),
+			),
+		]);
+		this.db
+			.prepare(
+				"delete from tweets_fts where tweet_id in (select value from json_each(?))",
+			)
+			.run(ids);
+		this.db
+			.prepare(`
+			insert into tweets_fts (tweet_id, text)
+			select id, text from tweets
+			where id in (select value from json_each(?))
+			  and deleted_at is null and superseded_at is null
+		`)
+			.run(ids);
+	}
+
 	clearAuthoredSyncCursors(accountId?: string) {
 		if (accountId) {
 			this.db

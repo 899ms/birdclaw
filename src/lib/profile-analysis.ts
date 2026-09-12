@@ -18,7 +18,6 @@ import {
 } from "./effect-runtime";
 import type { Database } from "./sqlite";
 import { inspectSyncCache, readSyncCache, writeSyncCache } from "./sync-cache";
-import { tweetEntitiesFromXurl } from "./tweet-render";
 import type {
 	ProfileRecord,
 	TweetEntities,
@@ -30,6 +29,7 @@ import { ingestTweetPayload } from "./tweet-repository";
 import { adaptUserTimelinePage, mergeTweetPages } from "./tweet-page";
 import type { TweetAccountEdgeKind } from "./tweet-account-edges";
 import { buildExternalProfileId, upsertProfileFromXUser } from "./x-profile";
+import { tweetContentFromXurl } from "./x-tweet-content";
 import { recordXurlRateLimitEventSafe } from "./xurl-rate-limits";
 import type { XurlJsonCommandAttempt } from "./xurl";
 import {
@@ -322,13 +322,14 @@ function compactProfileTweet(
 	tweet: XurlTweetData,
 	profileHandle: string,
 ): CompactProfileTweet {
+	const content = tweetContentFromXurl(tweet);
 	return {
 		id: tweet.id,
 		url: tweetUrl(profileHandle, tweet.id),
 		author: profileHandle,
 		createdAt: tweet.created_at,
-		text: tweet.text,
-		entities: tweetEntitiesFromXurl(tweet.entities),
+		text: content.text,
+		entities: content.entities,
 		...(tweet.conversation_id ? { conversationId: tweet.conversation_id } : {}),
 		...(tweet.referenced_tweets?.find((item) => item.type === "replied_to")?.id
 			? {
@@ -669,6 +670,7 @@ export function collectProfileAnalysisContextEffect(
 					"created_at",
 					"conversation_id",
 					"entities",
+					"note_tweet",
 					"public_metrics",
 					"referenced_tweets",
 					"in_reply_to_user_id",

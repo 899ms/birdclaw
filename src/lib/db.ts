@@ -127,10 +127,7 @@ function createReadDatabasePool(
 function assertCurrentDatabaseSchema(db: Database) {
 	const expectedVersion = DATABASE_MIGRATIONS.at(-1)?.version ?? 0;
 	const actualVersion = getDatabaseSchemaVersion(db);
-	// Version 10 adds only indexes. Existing v9 snapshots remain safe to serve
-	// until their next writable sync upgrades them; future schemas still fail closed.
-	const compatibleSnapshot = expectedVersion === 10 && actualVersion === 9;
-	if (actualVersion !== expectedVersion && !compatibleSnapshot) {
+	if (actualVersion !== expectedVersion) {
 		throw new Error(
 			`Birdclaw database schema ${String(actualVersion)} is not ready for version ${String(expectedVersion)}`,
 		);
