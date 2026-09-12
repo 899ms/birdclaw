@@ -9,6 +9,10 @@ import {
 	sensitiveRequestErrorResponse,
 } from "#/lib/http-effect";
 import { queryResourceResponse } from "#/lib/query-resource-response";
+import {
+	decodeDmMessageCursor,
+	type DmMessageCursor,
+} from "#/lib/dm-read-model";
 import type { DmQuery, ReplyFilter, TimelineQualityFilter } from "#/lib/types";
 
 function parseReplyFilter(value: string | null): ReplyFilter {
@@ -81,8 +85,61 @@ export const Route = createFileRoute("/api/query")({
 						};
 
 						if (resource === "dms") {
+							const view = url.searchParams.get("view");
+							if (view !== null && view !== "list" && view !== "conversation")
+								return jsonResponse(
+									{ ok: false, message: "Invalid DM view" },
+									{ status: 400 },
+								);
+							if (
+								view === "conversation" &&
+								!url.searchParams.get("conversationId")?.trim()
+							)
+								return jsonResponse(
+									{ ok: false, message: "Missing conversationId" },
+									{ status: 400 },
+								);
+							const rawLimit = url.searchParams.get("messageLimit");
+							if (
+								rawLimit !== null &&
+								(!/^\d+$/.test(rawLimit) ||
+									!Number.isSafeInteger(Number(rawLimit)) ||
+									Number(rawLimit) < 1)
+							)
+								return jsonResponse(
+									{ ok: false, message: "Invalid messageLimit" },
+									{ status: 400 },
+								);
+							const messageLimit =
+								rawLimit === null ? undefined : Math.min(200, Number(rawLimit));
+							let before: DmMessageCursor | undefined;
+							if (url.searchParams.has("before")) {
+								if (view !== "conversation" || messageLimit === undefined)
+									return jsonResponse(
+										{
+											ok: false,
+											message:
+												"Message cursor requires a bounded conversation view",
+										},
+										{ status: 400 },
+									);
+								try {
+									before = decodeDmMessageCursor(
+										url.searchParams.get("before")!,
+										url.searchParams.get("conversationId")!,
+									);
+								} catch {
+									return jsonResponse(
+										{ ok: false, message: "Invalid message cursor" },
+										{ status: 400 },
+									);
+								}
+							}
 							return queryResourceResponse("dms", {
 								...baseFilters,
+								...(view ? { view } : {}),
+								...(messageLimit === undefined ? {} : { messageLimit }),
+								...(before ? { before } : {}),
 								participant: url.searchParams.get("participant") ?? undefined,
 								minFollowers: parseOptionalNumber(
 									url.searchParams.get("minFollowers"),

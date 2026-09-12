@@ -600,3 +600,22 @@ Writable deployments bypass this cache. Exceptions are not retained, and respons
 Ordinary timeline reads materialize their limited membership before hydrating reply/quote profiles and collection metadata. Ordinary timeline selection retains account/author joins before the limit so malformed orphan rows cannot shorten a page. Saved-post reads keep their collection query plan. Search retains its existing bounded selection and join order, and recent-window fallback, account preference, filters, and keyset ordering remain unchanged.
 
 Recent-window candidate order includes tweet IDs so timestamp ties match the final page order. Account-scoped and literal-account callers retain their existing membership rules.
+
+## DM read views
+
+`GET /api/query?resource=dms` retains the combined list and selected-thread
+response used by existing clients. The web workspace bootstraps with the combined response, then requests `view=list` for
+conversation metadata and `view=conversation&conversationId=...&account=...`
+for a selected thread. The latter returns an empty `items` array and the
+account-scoped `selectedConversation`, or null when it is unavailable. List
+filters apply to the list; the thread view selects by conversation ID and account.
+
+The initial combined response seeds the thread cache without a second request.
+The browser caches thread responses by account and conversation separately from
+list filters. Sync and successful writes invalidate both caches. The browser requests the newest 100 messages (`messageLimit=100`) and loads older
+pages on demand through the returned `selectedConversation.nextCursor`. A cursor
+is passed as `before` with `view=conversation`, its exact `conversationId`, and
+`messageLimit`; malformed or cross-conversation cursors are rejected. Message
+pages are capped at 200 and use creation time plus message ID to handle ties.
+Calls without `messageLimit`, including existing combined/API and CLI full-thread
+reads, retain complete history. All messages remain accessible through pagination.
