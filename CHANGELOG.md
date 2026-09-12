@@ -5,6 +5,8 @@
 - Honor `--json` for parser and uncaught runtime failures and server startup, expose global options in nested help, and validate the server port before startup. Exercise local JSON commands and failures through installed Node and Bun packages.
 - Add **Open on X** links to feed cards, parent and quoted tweets, and expanded conversations, including read-only archives. Reposts open the original tweet when its ID is known.
 
+- Add opt-in numeric CLI timing summaries for elapsed time, process CPU, and database work without exposing queries or archive contents.
+
 ## 0.12.6 - 2026-09-12
 
 ### Highlights
