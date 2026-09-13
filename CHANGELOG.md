@@ -2,31 +2,41 @@
 
 ## 0.12.7 - Unreleased
 
-- Show “no threads” in feed cards when no other archived replies are found, instead of opening an empty conversation panel.
+### Highlights
 
-- Give digest, discussion, and profile analysis one report-generation lifecycle for request construction, persistence, cache replay, and completion events; retain their refresh, citation, and streaming behavior.
+- **Keep the full post.** Preserve long-form X Note Tweets across sync, search, and backups, and expand them directly in the timeline.
+- **Jump from the archive to X.** Open posts, quoted tweets, and conversations on X from their archive cards, including in read-only deployments.
+- **Read saved records from the CLI.** Look up individual tweets, threads, and DM conversations in the selected account, with JSON output for scripts.
+- **Spend less time waiting.** Start the CLI faster and reduce repeated profile and history work during sync and identity searches.
 
-- Stabilize backup integration tests under slow filesystem I/O with focused fixtures and independent invalid-path cases, while retaining real durability and publication checks.
-- Consolidate backup merge declarations, API data types, transport page handling, and analysis cache/event plumbing; route invalid CLI inputs through one error boundary while retaining command output and archive compatibility.
-- Share profile URL-entity parsing and identity-index insertion rules, and consolidate automatic backup setup and result handling while retaining update freshness checks and sync behavior.
+### Upgrade notes
 
-- Preserve full X Note Tweets through live ingestion, search, archive/backup merges, and expandable timeline rendering. Keep schema-8 backup interoperability; older writers retain full text but omit the optional Note Tweet marker. Thanks @eferm (#134).
-- Compatibility: Note Tweet storage adds SQLite migration 11. Prepare existing read-only archive snapshots with writable initialization before serving the updated application.
-- Reconcile each tweet author once per ingested payload, avoiding repeated profile and history work for posts and included references by the same author.
+- Note Tweet storage adds SQLite migration 11. Prepare existing read-only archive snapshots with writable initialization before serving the updated application.
+- Backups remain interoperable with schema-8 readers and writers. Older writers retain full Note Tweet text but omit the optional Note Tweet marker. (#134)
 
-- Update the Hono server dependency to 4.13.7 and the development/CI Node pin to 26.8.2; installed-package checks retain the Node 26.5.1 minimum.
+### Fixes and improvements
 
-- Limit profile-history rows in SQLite before returning them and omit unused raw payloads from history reads, reducing sync and identity-search work for profiles with long histories.
+- Preserve full Note Tweet text and entities through live ingestion, search, archive and backup merges, and expandable timeline rendering. (#134 — thanks @eferm)
+- Add **Open on X** links to feed cards, parent and quoted tweets, and expanded conversations. Reposts open the original tweet when its ID is known. (#189)
+- Show “no threads” in feed cards when no other archived replies are found, instead of opening an empty conversation panel. (#207)
+- Add account-scoped `show tweet`, `show thread`, and `show dm` commands with JSON output, plus `db vacuum` to reclaim unused SQLite space. (#192)
+- Honor `--json` for parser and uncaught runtime failures and server startup, expose global options in nested help, and validate the server port before startup. (#190)
+- Validate numeric CLI options before account lookups or command work, preventing negative limits from requesting unlimited DM results and rejecting invalid score thresholds. (#192)
 
-- Index historical follower membership, follow events, and list owners by profile so identity reconciliation avoids repeated full-table scans.
+### Performance
 
-- Reduce CLI startup time by bundling the used Effect modules while keeping other direct dependencies external.
+- Reduce CLI startup time by bundling the used Effect modules while keeping other direct dependencies external. (#193)
+- Reconcile each tweet author once per ingested payload, avoiding repeated profile and history work for posts and included references by the same author. (#200)
+- Bound profile-history reads in SQLite, omit unused raw payloads, and index historical follower membership, follow events, and list owners by profile to avoid repeated full-table scans. (#194, #195)
 
-- Add account-scoped `show tweet`, `show thread`, and `show dm` commands with JSON output, plus `db vacuum`. Validate numeric CLI options before account lookups or command work, preventing negative limits from requesting unlimited DM results and rejecting invalid score thresholds.
-- Honor `--json` for parser and uncaught runtime failures and server startup, expose global options in nested help, and validate the server port before startup. Exercise local JSON commands and failures through installed Node and Bun packages.
-- Add **Open on X** links to feed cards, parent and quoted tweets, and expanded conversations, including read-only archives. Reposts open the original tweet when its ID is known.
+### Developer tools and maintenance
 
-- Add opt-in numeric CLI timing summaries for elapsed time, process CPU, and database work without exposing queries or archive contents.
+- Add opt-in numeric CLI timing summaries for elapsed time, process CPU, and database work without exposing queries or archive contents. (#191)
+- Consolidate backup merge declarations, API data types, transport pagination, CLI streams, and input-error handling while preserving command output and archive compatibility. (#196, #202, #203)
+- Give digest, discussion, and profile analysis one lifecycle for request construction, persistence, cache replay, and completion events; retain refresh, citation, and streaming behavior. (#206)
+- Share parsing of profile URL entities and identity index insertion rules, and consolidate automatic backup setup and result handling while retaining freshness checks and sync behavior. (#204)
+- Stabilize backup integration tests under slow filesystem I/O with focused fixtures and independent invalid-path cases, retaining real durability and publication checks. Exercise local JSON commands and failures through installed Node and Bun packages. (#190, #205)
+- Update Hono to 4.13.7 and the development/CI Node pin to 26.8.2; installed-package checks retain the Node 26.5.1 minimum. (#201)
 
 ## 0.12.6 - 2026-09-12
 
