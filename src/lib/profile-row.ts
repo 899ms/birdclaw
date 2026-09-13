@@ -19,6 +19,25 @@ const PROFILE_COLUMNS = {
 	createdAt: "created_at",
 } as const;
 
+export type ProfileSqlRow<Prefix extends string> = {
+	[
+		Key in keyof typeof PROFILE_COLUMNS as `${Prefix}${(typeof PROFILE_COLUMNS)[Key]}`
+	]: Key extends "followersCount" | "followingCount" | "avatarHue"
+		? number | null
+		: string | null;
+};
+
+export function profileSelect(table: string, prefix: string, details = true) {
+	return Object.values(PROFILE_COLUMNS)
+		.filter(
+			(column) =>
+				details ||
+				!["location", "url", "verified_type", "entities_json"].includes(column),
+		)
+		.map((column) => `${table}.${column} as ${prefix}${column}`)
+		.join(", ");
+}
+
 function valueAt(
 	row: ProfileDbRow,
 	prefix: string,
