@@ -2,6 +2,8 @@
 
 ## 0.13.1 - Unreleased
 
+- Add shareable `/tweets/<id>` permalinks that open saved conversations, highlight and focus the selected reply, and work in read-only archives with clear missing-post and limited-context states.
+
 - Speed up large DM syncs with one batched search-index deletion, avoid sorting timestamp ties during tweet selection, and cover current network-map membership with a partial SQLite index; add a reproducible SQLite read/write audit.
 
 - Speed up account feeds, saved posts, Inbox, and archive navigation with bounded page selection and shared read-only response caches; preserve sparse matches and rolling date windows, and add a full-page performance audit.
