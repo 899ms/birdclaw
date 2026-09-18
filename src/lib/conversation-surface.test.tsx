@@ -56,6 +56,9 @@ function Probe({
 			<button onClick={surface.toggle} type="button">
 				toggle {tweetId}
 			</button>
+			<button onClick={surface.closeAny} type="button">
+				close {tweetId}
+			</button>
 		</div>
 	);
 }
@@ -169,6 +172,38 @@ describe("conversation surface", () => {
 			truncated: false,
 		});
 		expect(fetchMock).toHaveBeenCalledWith("/api/conversation?tweetId=tweet_1");
+	});
+
+	it("dismisses only its own scope and supports standalone cards", () => {
+		vi.stubGlobal(
+			"fetch",
+			vi.fn().mockResolvedValue({
+				ok: true,
+				json: async () => ({ ok: true, items: [tweet] }),
+			}),
+		);
+		render(
+			<>
+				<ConversationSurfaceScope>
+					<Probe tweetId="row_a" />
+					<Probe tweetId="row_b" />
+				</ConversationSurfaceScope>
+				<ConversationSurfaceScope>
+					<Probe tweetId="other_scope" />
+				</ConversationSurfaceScope>
+				<Probe tweetId="standalone" />
+			</>,
+		);
+		for (const id of ["row_a", "other_scope", "standalone"]) {
+			fireEvent.click(screen.getByRole("button", { name: `toggle ${id}` }));
+		}
+		fireEvent.click(screen.getByRole("button", { name: "close row_b" }));
+		fireEvent.click(screen.getByRole("button", { name: "close row_b" }));
+		expect(screen.getByTestId("row_a-open")).toHaveTextContent("closed");
+		expect(screen.getByTestId("other_scope-open")).toHaveTextContent("open");
+		expect(screen.getByTestId("standalone-open")).toHaveTextContent("open");
+		fireEvent.click(screen.getByRole("button", { name: "close standalone" }));
+		expect(screen.getByTestId("standalone-open")).toHaveTextContent("closed");
 	});
 
 	it("stores load errors and retries failed prefetches", async () => {

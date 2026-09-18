@@ -8,7 +8,7 @@ import {
 	Repeat2,
 	UserSearch,
 } from "lucide-react";
-import { memo } from "react";
+import { memo, useRef } from "react";
 import { formatCompactNumber } from "#/lib/present";
 import {
 	isTweetArticleUrlEntity,
@@ -309,6 +309,7 @@ export const TimelineCard = memo(function TimelineCard({
 			: displayTweetId;
 	const displayAuthor = displayTweet.author;
 	const conversation = useConversationSurface(item.id, interactionTweetId);
+	const pointerType = useRef("");
 	const noThreads =
 		conversation.status === "ready" && conversation.items.length <= 1;
 	const visibleEntities = getVisibleEntities(
@@ -352,9 +353,35 @@ export const TimelineCard = memo(function TimelineCard({
 			data-perf="timeline-card"
 			onFocus={conversation.prefetch}
 			onMouseEnter={conversation.prefetch}
+			onPointerDown={(event) => {
+				pointerType.current = event.pointerType;
+			}}
+			onPointerCancel={() => {
+				pointerType.current = "";
+			}}
 			onClick={(event) => {
-				if (noThreads || isInteractiveTarget(event.target)) return;
-				conversation.toggle();
+				// Some browsers still emit MouseEvent clicks after touch pointers.
+				const inputType =
+					"pointerType" in event.nativeEvent
+						? event.nativeEvent.pointerType
+						: event.detail === 0
+							? ""
+							: pointerType.current;
+				pointerType.current = "";
+				if (isInteractiveTarget(event.target)) return;
+				const selection = window.getSelection();
+				if (
+					selection &&
+					!selection.isCollapsed &&
+					(event.currentTarget.contains(selection.anchorNode) ||
+						event.currentTarget.contains(selection.focusNode))
+				)
+					return;
+				if (inputType === "touch") {
+					conversation.closeAny();
+				} else if (!noThreads) {
+					conversation.toggle();
+				}
 			}}
 		>
 			<AvatarChip

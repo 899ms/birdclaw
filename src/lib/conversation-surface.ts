@@ -73,6 +73,9 @@ export function useConversationSurface(surfaceId: string, tweetId = surfaceId) {
 	const toggle = useCallback(() => {
 		setExpandedSurfaceId(isOpen ? null : surfaceId);
 	}, [isOpen, setExpandedSurfaceId, surfaceId]);
+	const closeAny = useCallback(() => {
+		setExpandedSurfaceId(null);
+	}, [setExpandedSurfaceId]);
 	const prefetch = useCallback(() => {
 		void queryClient.prefetchQuery(conversationQueryOptions(tweetId));
 	}, [queryClient, tweetId]);
@@ -85,6 +88,7 @@ export function useConversationSurface(surfaceId: string, tweetId = surfaceId) {
 				: "idle";
 
 	return {
+		closeAny,
 		error: query.error instanceof Error ? query.error.message : null,
 		isOpen,
 		items: query.data?.items ?? [],

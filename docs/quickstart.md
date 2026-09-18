@@ -93,7 +93,7 @@ Open <http://localhost:3000>. The default lanes:
 - **Inbox** — let heuristics or OpenAI float likely-important items
 - **Blocks** — maintain a local-first account-scoped blocklist
 
-Click a feed card or its **Thread** action to read the archived conversation. If the lookup finds no other posts, the card shows **no threads** instead of an empty panel.
+Click a feed card with a mouse or use its **Thread** action to read the archived conversation. On touchscreens, **Thread** opens the conversation; tapping plain text on any feed card dismisses the open thread without opening another. Links and text selection keep their normal behavior. If the lookup finds no other posts, the card shows **no threads** instead of an empty panel.
 
 Use **Permalink** on a post, quoted post, or individual reply to open
 `/tweets/<tweet-id>`. This URL loads the saved conversation directly and scrolls
