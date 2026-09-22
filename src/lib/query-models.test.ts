@@ -613,6 +613,50 @@ describe("query models", () => {
 		expect(items[0]?.searchSnippet).toContain("<mark>Agents</mark>");
 	});
 
+	it("filters tweets by author with the from operator", () => {
+		setupTempHome();
+		const db = getNativeDb();
+		const createdAt = "2030-01-01T00:00:00.000Z";
+		insertTestTweet(db, {
+			id: "tweet_from_sam_decoy",
+			authorProfileId: "profile_des",
+			text: "A dispatch from sam",
+			createdAt,
+		});
+		insertTestEdge(db, "tweet_from_sam_decoy", createdAt);
+		refreshSearchRows(db, "tweet", ["tweet_from_sam_decoy"]);
+
+		const items = listTimelineItems({
+			resource: "home",
+			search: "from:sam",
+		});
+
+		expect(items.map((item) => item.id)).toEqual(["tweet_001", "tweet_006"]);
+	});
+
+	it("combines the from operator with tweet text", () => {
+		setupTempHome();
+
+		const items = listTimelineItems({
+			resource: "home",
+			search: "local-first from:sam",
+		});
+
+		expect(items.map((item) => item.id)).toEqual(["tweet_001"]);
+	});
+
+	it.each([
+		{ search: "from:@SAM" },
+		{ author: "@SAM" },
+		{ search: "from:des", author: "@SAM" },
+		{ search: "from:@SAM", likedOnly: true },
+		{ author: "@SAM", bookmarkedOnly: true },
+	])("matches author handles across local searches: %j", (filters) => {
+		setupTempHome();
+		const items = listTimelineItems({ resource: "home", ...filters });
+		expect(items.map((item) => item.id)).toEqual(["tweet_001", "tweet_006"]);
+	});
+
 	// Perf regression guard: with bound parameters SQLite used to pick a plan
 	// that re-ran the whole tweets_fts MATCH scan for every timeline edge row,
 	// turning limited searches into minutes on large archives. Every tweets_fts
@@ -1302,6 +1346,8 @@ describe("query models", () => {
 		};
 		for (const query of [
 			{ resource: "home" as const, limit: 1 },
+			{ resource: "home" as const, search: "from:sam", limit: 1 },
+			{ resource: "home" as const, author: "sam", limit: 1 },
 			{
 				resource: "home" as const,
 				until: "2027-01-01T00:00:00.000Z",
